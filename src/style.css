@@ -300,6 +300,12 @@ a {
   background: #fff;
 }
 
+@media (max-width: 800px) {
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
   body {
     background-attachment: scroll;
@@ -346,7 +352,7 @@ a {
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .site-header {
     justify-content: center;
   }
@@ -366,5 +372,10 @@ a {
     gap: 28px;
     padding-right: 12px;
     padding-left: 12px;
+  }
+
+  .product-card {
+    width: min(100%, 360px);
+    justify-self: center;
   }
 }
