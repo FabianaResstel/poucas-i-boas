@@ -3,7 +3,7 @@ function App() {
     <main>
       {" "}
       <h1>Poucas boas bolsas</h1>
-      <p>Feito à mão, com carinho. 💜</p>
+      <p>Feito à mão, com carinho 💜</p>
     </main>
   );
 }
