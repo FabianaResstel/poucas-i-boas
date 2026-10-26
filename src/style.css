@@ -1,1 +1,370 @@
-/* Global styles will be added as the website is built. */
+:root {
+  font-family: "Nunito", system-ui, sans-serif;
+  color: #3a2456;
+  background: #7bbfbd;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  font-size: 16px;
+  --lilac: #e6daf5;
+  --purple: #5b2a8c;
+  --pink: #e0489a;
+  --paper: #fff;
+  --card-shadow: rgba(60, 30, 90, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: #7bbfbd url("/images/background/fundo-floral.jpg") center / 720px auto repeat fixed;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.page-frame {
+  min-height: 100vh;
+}
+
+.page-container {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  padding: 40px 16px 40px;
+}
+
+.store-panel {
+  padding: 50px 40px 50px;
+  background: var(--lilac);
+  border: 5px solid #fff;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.brand {
+  display: flex;
+  width: 124px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px 8px;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.brand img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.primary-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.nav-link,
+.cart-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  color: var(--purple);
+  background: #fff;
+  border: 0;
+  border-radius: 22px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nav-link.is-active,
+.nav-link:hover:not(:disabled) {
+  color: #fff;
+  background: var(--purple);
+}
+
+.nav-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.cart-button {
+  position: relative;
+  width: 48px;
+  height: 44px;
+  padding: 8px;
+  color: #fff;
+  background: var(--pink);
+  border-radius: 50%;
+  cursor: not-allowed;
+}
+
+.cart-button:disabled {
+  opacity: 0.82;
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  min-width: 21px;
+  height: 21px;
+  place-items: center;
+  padding: 0 5px;
+  color: #fff;
+  background: var(--purple);
+  border: 2px solid var(--lilac);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.shop-page {
+  padding: 4px 2px 8px;
+}
+
+.shop-intro {
+  padding: 0 4px;
+}
+
+.shop-intro h1,
+.product-card h2 {
+  color: var(--purple);
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+}
+
+.shop-intro h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(1.8rem, 4vw, 2.1rem);
+  line-height: 1.2;
+}
+
+.shop-intro p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px 22px;
+  padding: 30px 6px 8px;
+}
+
+.product-card {
+  position: relative;
+  min-width: 0;
+  padding: 12px 12px 14px;
+  background: var(--paper);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 #ddd, 0 10px 14px var(--card-shadow),
+    0 22px 28px -8px var(--card-shadow);
+  transform: rotate(var(--card-rotation));
+  transform-origin: 50% 0;
+}
+
+.clothespin {
+  position: absolute;
+  z-index: 1;
+  top: -18px;
+  left: 50%;
+  width: 16px;
+  height: 46px;
+  margin-left: -8px;
+  background: linear-gradient(90deg, #c99556, #efc88a 50%, #c99556);
+  border-radius: 4px 4px 3px 3px;
+  box-shadow: 1px 3px 4px rgba(0, 0, 0, 0.3);
+}
+
+.clothespin::after {
+  position: absolute;
+  top: 16px;
+  left: 7px;
+  width: 2px;
+  height: 30px;
+  background: #a8763c;
+  content: "";
+}
+
+.product-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
+  object-fit: cover;
+  background: #eee;
+}
+
+.product-card h2 {
+  margin: 12px 0 2px;
+  font-family: "Nunito", system-ui, sans-serif;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.product-price {
+  margin: 0;
+  color: var(--pink);
+  font-weight: 700;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .product-card:hover {
+    animation: card-swing 900ms ease-out;
+  }
+}
+
+@keyframes card-swing {
+  20% {
+    transform: rotate(calc(var(--card-rotation) + 5deg));
+  }
+
+  45% {
+    transform: rotate(calc(var(--card-rotation) - 4deg));
+  }
+
+  70% {
+    transform: rotate(calc(var(--card-rotation) + 2deg));
+  }
+
+  100% {
+    transform: rotate(var(--card-rotation));
+  }
+}
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.site-footer a,
+.whatsapp-link {
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-footer .instagram-link {
+  color: #fff;
+  background: var(--purple);
+}
+
+.site-footer .instagram-link:hover,
+.site-footer .instagram-link:focus-visible {
+  color: var(--purple);
+  background: #fff;
+}
+
+.whatsapp-link {
+  color: #fff;
+  background: #25a244;
+}
+
+.site-footer .whatsapp-link:hover,
+.site-footer .whatsapp-link:focus-visible {
+  color: #218c3d;
+  background: #fff;
+}
+
+@media (max-width: 640px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .page-container {
+    padding: 12px 10px 28px;
+  }
+
+  .store-panel {
+    padding: 15px 13px 24px;
+    border-width: 4px;
+    border-radius: 23px;
+  }
+
+  .site-header {
+    align-items: center;
+  }
+
+  .brand {
+    width: 96px;
+    height: 64px;
+  }
+
+  .primary-nav {
+    gap: 6px;
+  }
+
+  .nav-link {
+    min-height: 40px;
+    padding: 8px 11px;
+    font-size: 0.88rem;
+  }
+
+  .cart-button {
+    width: 42px;
+    height: 40px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 18px;
+    padding: 26px 5px 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-header {
+    justify-content: center;
+  }
+
+  .brand {
+    width: 112px;
+    height: 68px;
+  }
+
+  .primary-nav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .product-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
