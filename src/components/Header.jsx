@@ -1,4 +1,4 @@
-function Header() {
+function Header({ cartCount, onOpenCart }) {
   return (
     <header className="site-header">
       <a className="brand" href="#inicio" aria-label="Poucas boas bolsas — início">
@@ -15,8 +15,8 @@ function Header() {
         <button
           className="cart-button"
           type="button"
-          aria-label="Carrinho, 0 itens"
-          disabled
+          aria-label={`Carrinho, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}`}
+          onClick={onOpenCart}
         >
           <svg
             aria-hidden="true"
@@ -34,7 +34,7 @@ function Header() {
             <circle cx="18" cy="20" r="1" />
           </svg>
           <span className="cart-count" aria-hidden="true">
-            0
+            {cartCount}
           </span>
         </button>
       </nav>

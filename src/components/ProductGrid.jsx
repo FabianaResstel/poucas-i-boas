@@ -1,7 +1,7 @@
 import { products } from '../data/products.js'
 import ProductCard from './ProductCard.jsx'
 
-function ProductGrid() {
+function ProductGrid({ onOpenProduct }) {
   return (
     <section className="shop-page" id="loja" aria-labelledby="shop-title">
       <div className="shop-intro">
@@ -11,7 +11,7 @@ function ProductGrid() {
 
       <div className="product-grid">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard key={product.id} product={product} onOpen={onOpenProduct} />
         ))}
       </div>
     </section>

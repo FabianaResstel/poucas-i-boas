@@ -1,11 +1,13 @@
 import { formatPrice } from '../data/products.js'
 
-function ProductCard({ product }) {
+function ProductCard({ product, onOpen }) {
   return (
-    <article
+    <button
       className="product-card"
       style={{ '--card-rotation': product.rotation }}
-      aria-labelledby={`product-${product.id}`}
+      type="button"
+      onClick={() => onOpen(product)}
+      aria-label={`Ver detalhes de ${product.name}, ${formatPrice(product.price)}`}
     >
       <span className="clothespin" aria-hidden="true" />
       <img
@@ -16,9 +18,9 @@ function ProductCard({ product }) {
         width="320"
         height="360"
       />
-      <h2 id={`product-${product.id}`}>{product.name}</h2>
-      <p className="product-price">{formatPrice(product.price)}</p>
-    </article>
+      <span className="product-card-name">{product.name}</span>
+      <span className="product-price">{formatPrice(product.price)}</span>
+    </button>
   )
 }
 

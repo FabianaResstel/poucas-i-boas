@@ -184,12 +184,22 @@ a {
   position: relative;
   min-width: 0;
   padding: 12px 12px 14px;
+  color: inherit;
   background: var(--paper);
+  border: 0;
   border-radius: 4px;
   box-shadow: 0 2px 0 #ddd, 0 10px 14px var(--card-shadow),
     0 22px 28px -8px var(--card-shadow);
+  cursor: pointer;
+  font: inherit;
   transform: rotate(var(--card-rotation));
   transform-origin: 50% 0;
+  text-align: left;
+}
+
+.product-card:focus-visible {
+  outline: 3px solid var(--pink);
+  outline-offset: 4px;
 }
 
 .clothespin {
@@ -223,19 +233,301 @@ a {
   background: #eee;
 }
 
-.product-card h2 {
+.product-card-name {
+  display: block;
   margin: 12px 0 2px;
   font-family: "Nunito", system-ui, sans-serif;
   font-size: 1rem;
-  font-style: normal;
   font-weight: 700;
   line-height: 1.35;
 }
 
 .product-price {
+  display: block;
   margin: 0;
   color: var(--pink);
   font-weight: 700;
+}
+
+.app-dialog {
+  position: fixed;
+  max-width: min(920px, calc(100vw - 32px));
+  max-height: min(90vh, 900px);
+  padding: 30px;
+  overflow: auto;
+  color: #3a2456;
+  background: #fff;
+  border: 4px solid #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 70px rgba(28, 13, 43, 0.38);
+}
+
+.app-dialog::backdrop {
+  background: rgba(31, 20, 42, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.dialog-close {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  float: right;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  margin: -15px -15px 0 10px;
+  color: var(--purple);
+  background: #f3eafa;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.product-dialog-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 30px;
+  clear: both;
+}
+
+.product-dialog {
+  width: min(920px, calc(100vw - 32px));
+}
+
+.gallery-stage {
+  display: grid;
+  min-height: 340px;
+  aspect-ratio: 1 / 0.95;
+  place-items: center;
+  overflow: hidden;
+  background: #f6f1f8;
+  border-radius: 12px;
+}
+
+.gallery-stage img,
+.gallery-stage video {
+  display: block;
+  width: 100%;
+  max-height: 58vh;
+  object-fit: contain;
+}
+
+.gallery-stage video {
+  background: #17131b;
+}
+
+.gallery-thumbnails {
+  display: flex;
+  gap: 9px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+}
+
+.gallery-thumbnail,
+.video-thumbnail {
+  flex: 0 0 66px;
+  width: 66px;
+  height: 66px;
+  padding: 3px;
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid #e6daf5;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.gallery-thumbnail.is-selected,
+.video-thumbnail.is-selected {
+  border-color: var(--pink);
+}
+
+.gallery-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.video-thumbnail {
+  display: grid;
+  place-items: center;
+  color: var(--purple);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.product-detail-copy {
+  padding-top: 8px;
+}
+
+.dialog-eyebrow {
+  margin: 0 0 6px;
+  color: var(--pink);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.product-detail-copy h2,
+.cart-dialog h2 {
+  margin: 0 42px 6px 0;
+  color: var(--purple);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.8rem;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.detail-price {
+  margin: 0 0 17px;
+  color: var(--pink);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.detail-description {
+  line-height: 1.6;
+}
+
+.product-detail-copy h3 {
+  margin: 18px 0 8px;
+  color: var(--purple);
+  font-size: 1rem;
+}
+
+.material-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.material-list li {
+  padding: 5px 10px;
+  background: #f3eafa;
+  border-radius: 999px;
+  font-size: 0.83rem;
+}
+
+.purchase-info {
+  margin: 20px 0;
+  padding: 12px 14px;
+  background: #f8f4fb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.purchase-info p {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+.primary-action {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 18px;
+  color: #fff;
+  background: var(--pink);
+  border: 0;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primary-action:hover,
+.primary-action:focus-visible {
+  background: var(--purple);
+}
+
+.added-confirmation {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  color: #286943;
+  font-size: 0.85rem;
+}
+
+.text-action,
+.remove-item {
+  padding: 4px 0;
+  color: var(--purple);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.cart-dialog {
+  width: min(600px, calc(100vw - 32px));
+}
+
+.cart-dialog h2 {
+  margin-bottom: 20px;
+}
+
+.cart-items {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee6f4;
+}
+
+.cart-item > img {
+  width: 68px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cart-item-copy h3,
+.cart-item-copy p {
+  margin: 0;
+}
+
+.cart-item-copy h3 {
+  color: var(--purple);
+  font-size: 0.95rem;
+}
+
+.cart-item-copy p {
+  margin-top: 4px;
+  color: var(--pink);
+  font-weight: 700;
+}
+
+.cart-subtotal {
+  display: flex;
+  justify-content: space-between;
+  margin: 18px 0 6px;
+  font-size: 1.05rem;
+}
+
+.checkout-note,
+.empty-cart {
+  margin: 12px 0 18px;
+  color: #5e5266;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -303,6 +595,24 @@ a {
 @media (max-width: 800px) {
   .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-dialog {
+    padding: 22px 18px;
+  }
+
+  .product-dialog-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .gallery-stage {
+    min-height: 240px;
+  }
+
+  .gallery-stage img,
+  .gallery-stage video {
+    max-height: 42vh;
   }
 }
 
