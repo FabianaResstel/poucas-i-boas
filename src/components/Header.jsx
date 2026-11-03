@@ -1,15 +1,30 @@
-function Header({ cartCount, onOpenCart }) {
+function Header({ cartCount, onOpenCart, activePage, onNavigate }) {
   return (
     <header className="site-header">
-      <a className="brand" href="#inicio" aria-label="Poucas boas bolsas — início">
+      <button
+        className="brand"
+        type="button"
+        onClick={() => onNavigate('shop')}
+        aria-label="Poucas boas bolsas — início"
+      >
         <img src="/images/logo/logo.JPG" alt="Poucas boas bolsas" />
-      </a>
+      </button>
 
       <nav className="primary-nav" aria-label="Navegação principal">
-        <a className="nav-link is-active" href="#loja" aria-current="page">
+        <button
+          className={`nav-link${activePage === 'shop' ? ' is-active' : ''}`}
+          type="button"
+          aria-current={activePage === 'shop' ? 'page' : undefined}
+          onClick={() => onNavigate('shop')}
+        >
           Loja
-        </a>
-        <button className="nav-link" type="button" disabled>
+        </button>
+        <button
+          className={`nav-link${activePage === 'about' ? ' is-active' : ''}`}
+          type="button"
+          aria-current={activePage === 'about' ? 'page' : undefined}
+          onClick={() => onNavigate('about')}
+        >
           Sobre mim
         </button>
         <button

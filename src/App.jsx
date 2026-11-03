@@ -1,14 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
 import ProductGrid from './components/ProductGrid.jsx'
 import ProductDetailsDialog from './components/ProductDetailsDialog.jsx'
 import CartDialog from './components/CartDialog.jsx'
+import AboutPage from './components/AboutPage.jsx'
 
 function App() {
+  const [activePage, setActivePage] = useState('shop')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState([])
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+
+  useEffect(() => {
+    const isAboutPage = activePage === 'about'
+    document.title = isAboutPage
+      ? 'Sobre mim | Poucas boas bolsas'
+      : 'Poucas boas bolsas | Bolsas feitas à mão'
+
+    document.querySelector('meta[name="description"]')?.setAttribute(
+      'content',
+      isAboutPage
+        ? 'Conheça Francita e seu universo criativo de bolsas feitas à mão, com crochê, tricô, tecidos e bordados.'
+        : 'Conheça as bolsas feitas à mão da Poucas boas bolsas. Peças únicas em tecido, crochê e tricô.',
+    )
+  }, [activePage])
 
   function addToCart(product) {
     setCartItems((items) => {
@@ -30,9 +46,18 @@ function App() {
     <div className="page-frame" id="inicio">
       <div className="page-container">
         <div className="store-panel">
-          <Header cartCount={cartCount} onOpenCart={() => setCartOpen(true)} />
+          <Header
+            cartCount={cartCount}
+            onOpenCart={() => setCartOpen(true)}
+            activePage={activePage}
+            onNavigate={setActivePage}
+          />
           <main>
-            <ProductGrid onOpenProduct={setSelectedProduct} />
+            {activePage === 'about' ? (
+              <AboutPage onShopClick={() => setActivePage('shop')} />
+            ) : (
+              <ProductGrid onOpenProduct={setSelectedProduct} />
+            )}
           </main>
         </div>
 

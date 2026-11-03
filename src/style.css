@@ -71,7 +71,9 @@ a {
   overflow: hidden;
   padding: 3px 8px;
   background: #fff;
+  border: 0;
   border-radius: 16px;
+  cursor: pointer;
 }
 
 .brand img {
@@ -592,6 +594,219 @@ a {
   background: #fff;
 }
 
+.about-page {
+  position: relative;
+  padding: 4px 2px 8px;
+}
+
+.about-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.about-heading h1 {
+  margin: 6px 0 12px;
+  color: var(--purple);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 2.1rem);
+  font-style: italic;
+}
+
+.doodle-heart {
+  color: var(--pink);
+  font-size: 27px;
+  transform: rotate(-15deg);
+}
+
+.about-spark {
+  margin-left: auto;
+  color: #e5a92f;
+  font-size: 34px;
+  transform: rotate(12deg);
+}
+
+.about-intro {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.82fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: 28px;
+}
+
+.about-photo-stack {
+  position: relative;
+  width: min(100%, 300px);
+  margin: 10px auto 28px;
+}
+
+.about-portrait,
+.memory-photo {
+  position: relative;
+  margin: 0;
+  padding: 10px 10px 34px;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 9px 18px var(--card-shadow);
+}
+
+.about-portrait {
+  transform: rotate(-4deg);
+}
+
+.about-portrait img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.about-portrait figcaption,
+.memory-photo figcaption {
+  padding-top: 9px;
+  color: var(--purple);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 15px;
+  font-style: italic;
+  text-align: center;
+}
+
+.photo-tape {
+  position: absolute;
+  z-index: 2;
+  top: -9px;
+  left: 38%;
+  width: 54px;
+  height: 17px;
+  background: #f7d78c;
+  box-shadow: 0 2px 3px #0002;
+  opacity: 0.9;
+  transform: rotate(-8deg);
+}
+
+.sticker {
+  position: absolute;
+  z-index: 3;
+  display: block;
+  color: var(--pink);
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+  font-weight: 800;
+  text-align: center;
+}
+
+.sticker-heart {
+  right: -23px;
+  bottom: -13px;
+  padding: 13px 9px;
+  background: #fff7fc;
+  border: 2px dashed #e9a0ca;
+  border-radius: 50%;
+  font-size: 13px;
+  transform: rotate(9deg);
+}
+
+.about-copy {
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.about-copy p {
+  margin: 0 0 13px;
+}
+
+.about-copy a {
+  color: var(--purple);
+  font-weight: 800;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.handwritten {
+  color: var(--purple);
+  font-family: "Comic Sans MS", "Segoe Print", cursive;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.about-shop-action {
+  width: auto;
+  margin-top: 4px;
+}
+
+.about-gallery-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 24px 0 12px;
+  padding-top: 14px;
+  color: var(--purple);
+  border-top: 2px dashed #c6a8e5;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 800;
+}
+
+.about-gallery-heading span:last-child {
+  color: var(--pink);
+  font-family: "Nunito", system-ui, sans-serif;
+  font-size: 19px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.memory-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  padding: 10px 8px 4px;
+}
+
+.memory-photo {
+  padding: 8px 8px 28px;
+}
+
+.memory-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.memory-one {
+  transform: rotate(-3deg);
+}
+
+.memory-two {
+  transform: rotate(2.5deg);
+}
+
+.memory-three {
+  transform: rotate(-1.5deg);
+}
+
+.memory-photo figcaption {
+  padding-top: 7px;
+  font-size: 13px;
+}
+
+.about-note {
+  margin: 20px 0 6px;
+  color: var(--purple);
+  font-family: "Comic Sans MS", "Segoe Print", cursive;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.about-note span {
+  color: var(--pink);
+  font-size: 22px;
+}
+
 @media (max-width: 800px) {
   .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -659,6 +874,42 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 30px 18px;
     padding: 26px 5px 8px;
+  }
+
+  .about-intro {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .about-photo-stack {
+    width: min(72%, 260px);
+    margin-bottom: 16px;
+  }
+
+  .about-copy {
+    font-size: 15px;
+  }
+
+  .memory-gallery {
+    gap: 10px;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .memory-photo {
+    padding: 6px 6px 24px;
+  }
+
+  .memory-photo figcaption {
+    font-size: 11px;
+  }
+
+  .about-gallery-heading {
+    font-size: 17px;
+  }
+
+  .about-gallery-heading span:last-child {
+    font-size: 15px;
   }
 }
 
