@@ -4,6 +4,8 @@ import { productMedia } from '../data/productMedia.js'
 
 function ProductDetailsDialog({ product, onClose, onAddToCart, onOpenCart }) {
   const dialogRef = useRef(null)
+  const status = product.status ?? 'available'
+  const isAvailable = status === 'available'
   const media = productMedia[product.id] ?? { images: [] }
   const gallery = [
     { src: product.image, label: 'Vista principal' },
@@ -21,8 +23,7 @@ function ProductDetailsDialog({ product, onClose, onAddToCart, onOpenCart }) {
   }, [])
 
   function addToCart() {
-    onAddToCart(product)
-    setAdded(true)
+    if (onAddToCart(product)) setAdded(true)
   }
 
   return (
@@ -94,10 +95,18 @@ function ProductDetailsDialog({ product, onClose, onAddToCart, onOpenCart }) {
             <p><strong>Prazo de entrega:</strong> 7 a 15 dias úteis.</p>
           </div>
 
-          <button className="primary-action" type="button" onClick={addToCart}>
-            Adicionar ao carrinho
-          </button>
-          {added && (
+          {isAvailable ? (
+            <button className="primary-action" type="button" onClick={addToCart}>
+              Adicionar ao carrinho
+            </button>
+          ) : (
+            <p className={`product-status-message is-${status}`} role="status">
+              {status === 'sold'
+                ? 'Esta peça já foi vendida e não está disponível para compra.'
+                : 'Esta peça está reservada no momento.'}
+            </p>
+          )}
+          {added && isAvailable && (
             <div className="added-confirmation" role="status">
               <span>{product.name} foi adicionada ao carrinho.</span>
               <button className="text-action" type="button" onClick={onOpenCart}>Ver carrinho</button>

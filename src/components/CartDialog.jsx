@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { formatPrice } from '../data/products.js'
 
-function CartDialog({ items, onClose, onRemove, onContinueShopping }) {
+function CartDialog({ items, onClose, onRemove, onContinueShopping, onCheckout }) {
   const dialogRef = useRef(null)
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
@@ -49,7 +49,9 @@ function CartDialog({ items, onClose, onRemove, onContinueShopping }) {
             ))}
           </ul>
           <p className="cart-subtotal"><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></p>
-          <p className="checkout-note">As opções de pagamento e finalização da compra estarão disponíveis em breve.</p>
+          <button className="primary-action cart-checkout-action" type="button" onClick={onCheckout}>
+            Continuar para pagamento
+          </button>
         </>
       )}
 

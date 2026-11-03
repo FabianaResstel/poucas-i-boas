@@ -1,6 +1,7 @@
 export const products = [
   {
     id: "bag-01",
+    status: "available",
     name: "Bolsa Afrodite",
     price: 325,
     image: "/images/bolsa-afrodite/frente.jpg",
@@ -12,6 +13,7 @@ export const products = [
   },
   {
     id: "bag-02",
+    status: "available",
     name: "Bolsa Anfitrite",
     price: 780,
     image: "/images/bolsa-amfitrite/frente.jpg",
@@ -31,6 +33,7 @@ export const products = [
   },
   {
     id: "bag-03",
+    status: "available",
     name: "Bolsa Astraea",
     price: 385,
     image: "/images/bolsa-astraea/frente-uma-face.jpg",
@@ -42,6 +45,7 @@ export const products = [
   },
   {
     id: "bag-04",
+    status: "available",
     name: "Bolsa Atena",
     price: 285,
     image: "/images/bolsa-atena/frente.jpg",
@@ -53,6 +57,7 @@ export const products = [
   },
   {
     id: "bag-05",
+    status: "available",
     name: "Bolsa Demeter",
     price: 530,
     image: "/images/bolsa-demeter/frente.jpg",
@@ -64,6 +69,7 @@ export const products = [
   },
   {
     id: "bag-06",
+    status: "available",
     name: "Bolsa Eos",
     price: 285,
     image: "/images/bolsa-eos/frente.jpg",
@@ -75,6 +81,7 @@ export const products = [
   },
   {
     id: "bag-07",
+    status: "available",
     name: "Bolsa Eris",
     price: 245,
     image: "/images/bolsa-eris/frente.jpg",
@@ -86,6 +93,7 @@ export const products = [
   },
   {
     id: "bag-08",
+    status: "available",
     name: "Bolsa Gaia",
     price: 415,
     image: "/images/bolsa-gaia/frente.jpg",
@@ -97,6 +105,7 @@ export const products = [
   },
   {
     id: "bag-09",
+    status: "available",
     name: "Bolsa Hebe",
     price: 315,
     image: "/images/bolsa-hebe/frente.jpg",
@@ -108,6 +117,7 @@ export const products = [
   },
   {
     id: "bag-10",
+    status: "available",
     name: "Bolsa Hecate",
     price: 265,
     image: "/images/bolsa-hecate/frente.jpg",
@@ -119,6 +129,7 @@ export const products = [
   },
   {
     id: "bag-11",
+    status: "available",
     name: "Bolsa Hera",
     price: 385,
     image: "/images/bolsa-hera/frente.jpg",
@@ -130,6 +141,7 @@ export const products = [
   },
   {
     id: "bag-12",
+    status: "available",
     name: "Bolsa Hestia",
     price: 175,
     image: "/images/bolsa-hestia/frente.jpg",
@@ -141,6 +153,7 @@ export const products = [
   },
   {
     id: "bag-13",
+    status: "available",
     name: "Bolsa Iris",
     price: 315,
     image: "/images/bolsa-iris/frente.jpg",
@@ -152,6 +165,7 @@ export const products = [
   },
   {
     id: "bag-14",
+    status: "available",
     name: "Bolsa Némesis",
     price: 215,
     image: "/images/bolsa-nemesis/frente.jpg",
@@ -163,6 +177,7 @@ export const products = [
   },
   {
     id: "bag-15",
+    status: "available",
     name: "Bolsa Nyx",
     price: 315,
     image: "/images/bolsa-nyx/frente.jpg",
@@ -174,6 +189,7 @@ export const products = [
   },
   {
     id: "bag-16",
+    status: "available",
     name: "Bolsa Perséfone",
     price: 365,
     image: "/images/bolsa-persefone/frente.jpg",
@@ -185,6 +201,7 @@ export const products = [
   },
   {
     id: "bag-17",
+    status: "available",
     name: "Bolsa Selene",
     price: 285,
     image: "/images/bolsa-selene/frente.jpg",
@@ -196,6 +213,7 @@ export const products = [
   },
   {
     id: "bag-18",
+    status: "available",
     name: "Bolsa Têmis",
     price: 165,
     image: "/images/bolsa-temis/frente.jpg",

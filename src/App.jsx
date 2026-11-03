@@ -4,6 +4,7 @@ import ProductGrid from './components/ProductGrid.jsx'
 import ProductDetailsDialog from './components/ProductDetailsDialog.jsx'
 import CartDialog from './components/CartDialog.jsx'
 import AboutPage from './components/AboutPage.jsx'
+import CheckoutPage from './components/CheckoutPage.jsx'
 
 function App() {
   const [activePage, setActivePage] = useState('shop')
@@ -13,20 +14,32 @@ function App() {
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
 
   useEffect(() => {
-    const isAboutPage = activePage === 'about'
-    document.title = isAboutPage
-      ? 'Sobre mim | Poucas boas bolsas'
-      : 'Poucas boas bolsas | Bolsas feitas à mão'
+    const pageMetadata = {
+      shop: {
+        title: 'Poucas boas bolsas | Bolsas feitas à mão',
+        description: 'Conheça as bolsas feitas à mão da Poucas boas bolsas. Peças únicas em tecido, crochê e tricô.',
+      },
+      about: {
+        title: 'Sobre mim | Poucas boas bolsas',
+        description: 'Conheça Francita e seu universo criativo de bolsas feitas à mão, com crochê, tricô, tecidos e bordados.',
+      },
+      checkout: {
+        title: 'Finalizar pedido | Poucas boas bolsas',
+        description: 'Revise seu pedido e veja as opções de pagamento da Poucas boas bolsas.',
+      },
+    }
+    const { title, description } = pageMetadata[activePage] ?? pageMetadata.shop
+    document.title = title
 
     document.querySelector('meta[name="description"]')?.setAttribute(
       'content',
-      isAboutPage
-        ? 'Conheça Francita e seu universo criativo de bolsas feitas à mão, com crochê, tricô, tecidos e bordados.'
-        : 'Conheça as bolsas feitas à mão da Poucas boas bolsas. Peças únicas em tecido, crochê e tricô.',
+      description,
     )
   }, [activePage])
 
   function addToCart(product) {
+    if ((product.status ?? 'available') !== 'available') return false
+
     setCartItems((items) => {
       const existing = items.find((item) => item.product.id === product.id)
       if (existing) {
@@ -36,6 +49,7 @@ function App() {
       }
       return [...items, { product, quantity: 1 }]
     })
+    return true
   }
 
   function removeFromCart(productId) {
@@ -55,6 +69,15 @@ function App() {
           <main>
             {activePage === 'about' ? (
               <AboutPage onShopClick={() => setActivePage('shop')} />
+            ) : activePage === 'checkout' ? (
+              <CheckoutPage
+                items={cartItems}
+                onBackToCart={() => {
+                  setActivePage('shop')
+                  setCartOpen(true)
+                }}
+                onContinueShopping={() => setActivePage('shop')}
+              />
             ) : (
               <ProductGrid onOpenProduct={setSelectedProduct} />
             )}
@@ -98,6 +121,10 @@ function App() {
           onClose={() => setCartOpen(false)}
           onRemove={removeFromCart}
           onContinueShopping={() => setCartOpen(false)}
+          onCheckout={() => {
+            setCartOpen(false)
+            setActivePage('checkout')
+          }}
         />
       )}
     </div>
