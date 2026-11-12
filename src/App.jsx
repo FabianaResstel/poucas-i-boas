@@ -5,8 +5,11 @@ import ProductDetailsDialog from './components/ProductDetailsDialog.jsx'
 import CartDialog from './components/CartDialog.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import CheckoutPage from './components/CheckoutPage.jsx'
+import OwnerAccess from './components/OwnerAccess.jsx'
 
 function App() {
+  const isOwnerRoute = window.location.pathname.replace(/\/$/, '') === '/admin'
+  const hasIdentityCallback = /(?:invite_token|access_token|confirmation_token|recovery_token|email_change_token)=/.test(window.location.hash)
   const [activePage, setActivePage] = useState('shop')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [cartOpen, setCartOpen] = useState(false)
@@ -14,6 +17,11 @@ function App() {
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
 
   useEffect(() => {
+    if (isOwnerRoute || hasIdentityCallback) {
+      document.title = 'Painel da proprietária | Poucas boas bolsas'
+      return
+    }
+
     const pageMetadata = {
       shop: {
         title: 'Poucas boas bolsas | Bolsas feitas à mão',
@@ -35,7 +43,7 @@ function App() {
       'content',
       description,
     )
-  }, [activePage])
+  }, [activePage, isOwnerRoute, hasIdentityCallback])
 
   function addToCart(product) {
     if ((product.status ?? 'available') !== 'available') return false
@@ -56,6 +64,8 @@ function App() {
     setCartItems((items) => items.filter((item) => item.product.id !== productId))
   }
 
+  if (isOwnerRoute || hasIdentityCallback) return <OwnerAccess />
+
   return (
     <div className="page-frame" id="inicio">
       <div className="page-container">
@@ -66,6 +76,9 @@ function App() {
             activePage={activePage}
             onNavigate={setActivePage}
           />
+          <p className="shipping-promo-banner">
+            Na compra de 2 ou mais bolsas, o frete PAC é grátis. SEDEX disponível com frete pago.
+          </p>
           <main>
             {activePage === 'about' ? (
               <AboutPage onShopClick={() => setActivePage('shop')} />

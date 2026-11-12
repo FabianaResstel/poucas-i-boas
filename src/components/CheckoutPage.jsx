@@ -7,9 +7,48 @@ const paymentMethods = [
   { id: 'pix', label: 'Pix', description: 'Pague com Pix.' },
 ]
 
+const shippingMethods = [
+  { id: 'pac', label: 'PAC' },
+  { id: 'sedex', label: 'SEDEX' },
+]
+
+function formatCep(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits
+}
+
 function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
   const [paymentMethod, setPaymentMethod] = useState(null)
+  const [cep, setCep] = useState('')
+  const [cepError, setCepError] = useState('')
+  const [shippingStepComplete, setShippingStepComplete] = useState(false)
+  const [selectedShipping, setSelectedShipping] = useState(null)
+  const itemCount = items.reduce((count, item) => count + item.quantity, 0)
+  const qualifiesForFreePac = itemCount >= 2
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+
+  function handleCepChange(event) {
+    setCep(formatCep(event.target.value))
+    setCepError('')
+    setShippingStepComplete(false)
+    setSelectedShipping(null)
+  }
+
+  function handleShippingSubmit(event) {
+    event.preventDefault()
+    const digits = cep.replace(/\D/g, '')
+
+    if (digits.length !== 8) {
+      setCepError('Confira o CEP. Digite os 8 números para continuar.')
+      setShippingStepComplete(false)
+      setSelectedShipping(null)
+      return
+    }
+
+    setCepError('')
+    setShippingStepComplete(true)
+    setSelectedShipping(null)
+  }
 
   return (
     <section className="checkout-page" aria-labelledby="checkout-title">
@@ -26,24 +65,104 @@ function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
         <div className="checkout-forms">
           <section className="checkout-panel" aria-labelledby="delivery-title">
             <h2 id="delivery-title">Entrega</h2>
-            <div className="checkout-field-grid">
-              <label className="checkout-field checkout-field-full">
-                Nome completo
-                <input type="text" autoComplete="off" placeholder="Seu nome" />
-              </label>
-              <label className="checkout-field checkout-field-full">
-                CEP
-                <input type="text" inputMode="numeric" autoComplete="off" placeholder="00000-000" />
-              </label>
-              <label className="checkout-field checkout-field-full">
-                Endereço e número
-                <input type="text" autoComplete="off" placeholder="Rua, avenida e número" />
-              </label>
-              <label className="checkout-field checkout-field-full">
-                Cidade / UF
-                <input type="text" autoComplete="off" placeholder="Cidade / Estado" />
-              </label>
-            </div>
+            <form onSubmit={handleShippingSubmit} noValidate>
+              <div className="checkout-field-grid">
+                <div className="checkout-field checkout-field-full">
+                  <label htmlFor="delivery-cep">CEP</label>
+                  <span className="checkout-cep-control">
+                    <input
+                      id="delivery-cep"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      placeholder="00000-000"
+                      value={cep}
+                      onChange={handleCepChange}
+                      aria-invalid={Boolean(cepError)}
+                      aria-describedby={cepError ? 'cep-error' : 'cep-help'}
+                    />
+                    <button className="primary-action checkout-shipping-submit" type="submit">
+                      Calcular frete
+                    </button>
+                  </span>
+                </div>
+              </div>
+              {cepError ? (
+                <p className="checkout-form-error" id="cep-error" role="alert">{cepError}</p>
+              ) : (
+                <p className="checkout-form-help" id="cep-help">Informe o CEP para ver as opções de envio.</p>
+              )}
+            </form>
+
+            {shippingStepComplete && (
+              <div className="checkout-shipping-results" aria-live="polite">
+                <p className="checkout-preview-note">
+                  Prévia: os valores e prazos reais aparecerão quando o cálculo de frete estiver conectado.
+                </p>
+                <fieldset className="checkout-shipping-methods">
+                  <legend>Escolha a forma de envio</legend>
+                  {shippingMethods.map((method) => (
+                    <label
+                      className={`checkout-shipping-method${selectedShipping === method.id ? ' is-selected' : ''}`}
+                      key={method.id}
+                    >
+                      <input
+                        type="radio"
+                        name="shipping-method"
+                        value={method.id}
+                        checked={selectedShipping === method.id}
+                        onChange={() => setSelectedShipping(method.id)}
+                      />
+                      <span className="checkout-shipping-method-copy">
+                        <strong>Correios {method.label}</strong>
+                        <small>
+                          {method.id === 'pac' && qualifiesForFreePac
+                            ? 'Frete grátis neste pedido'
+                            : 'Preço e prazo após integração'}
+                        </small>
+                      </span>
+                      <strong className="checkout-shipping-pending">
+                        {method.id === 'pac' && qualifiesForFreePac ? 'Grátis' : 'A calcular'}
+                      </strong>
+                    </label>
+                  ))}
+                </fieldset>
+                <p className="checkout-shipping-promo">
+                  {qualifiesForFreePac
+                    ? 'O PAC é grátis para este pedido. O SEDEX permanece pago.'
+                    : 'Na compra de 2 ou mais bolsas, o frete PAC é grátis. O SEDEX permanece pago.'}
+                </p>
+              </div>
+            )}
+
+            {shippingStepComplete && (
+              <div className="checkout-address-section" aria-labelledby="address-title">
+                <h3 id="address-title">Dados para entrega</h3>
+                <p className="checkout-form-help">Preencha o endereço onde deseja receber o pedido.</p>
+                <div className="checkout-field-grid">
+                  <label className="checkout-field checkout-field-full">
+                    Nome completo
+                    <input type="text" autoComplete="name" placeholder="Seu nome" />
+                  </label>
+                  <label className="checkout-field checkout-field-full">
+                    Endereço e número
+                    <input type="text" autoComplete="street-address" placeholder="Rua, avenida e número" />
+                  </label>
+                  <label className="checkout-field">
+                    Bairro
+                    <input type="text" autoComplete="address-level3" placeholder="Seu bairro" />
+                  </label>
+                  <label className="checkout-field">
+                    Complemento <span className="checkout-optional">(opcional)</span>
+                    <input type="text" autoComplete="address-line2" placeholder="Apto, bloco..." />
+                  </label>
+                  <label className="checkout-field checkout-field-full">
+                    Cidade / UF
+                    <input type="text" autoComplete="address-level2" placeholder="Cidade / Estado" />
+                  </label>
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="checkout-panel" aria-labelledby="payment-title">
@@ -113,7 +232,7 @@ function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
           <ul className="checkout-items">
             {items.map(({ product, quantity }) => (
               <li className="checkout-item" key={product.id}>
-                <img src={product.image} alt="" />
+                <img src={product.image} alt={product.imageAlt || product.name} />
                 <span className="checkout-item-copy">
                   <strong>{product.name}</strong>
                   <small>{quantity} × {formatPrice(product.price)}</small>
@@ -122,9 +241,31 @@ function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
               </li>
             ))}
           </ul>
-          <p className="checkout-delivery"><strong>Prazo de entrega:</strong> 7 a 15 dias úteis.</p>
+          <p className="checkout-delivery">
+            <strong>Prazo de entrega:</strong>{' '}
+            {selectedShipping ? 'será informado com a cotação.' : 'aguardando cotação do frete.'}
+          </p>
           <p className="checkout-total"><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></p>
-          <p className="checkout-shipping-note">O frete será definido na finalização da compra.</p>
+          <p className="checkout-shipping-note">
+            <span>Frete {selectedShipping ? `Correios ${selectedShipping.toUpperCase()}` : 'PAC ou SEDEX'}</span>
+            <strong>
+              {selectedShipping === 'pac' && qualifiesForFreePac
+                ? 'Grátis'
+                : selectedShipping
+                  ? 'A calcular'
+                  : 'Aguardando CEP'}
+            </strong>
+          </p>
+          <p className="checkout-total checkout-order-total">
+            <span>Total</span>
+            <strong>
+              {selectedShipping === 'pac' && qualifiesForFreePac
+                ? formatPrice(subtotal)
+                : selectedShipping
+                  ? `${formatPrice(subtotal)} + frete`
+                  : 'Subtotal + frete'}
+            </strong>
+          </p>
           <button className="primary-action checkout-placeholder" type="button" disabled>
             Formas de pagamento em breve
           </button>
