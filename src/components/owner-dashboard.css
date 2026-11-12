@@ -290,6 +290,10 @@
 .owner-media-fieldset input[type='file'] { max-width: 100%; color: #675b72; font: inherit; font-size: 11px; }
 .owner-extra-photos { display: flex; gap: 8px; flex-wrap: wrap; }
 .owner-extra-photos img { width: 54px; height: 54px; object-fit: cover; border-radius: 7px; }
+.owner-extra-photo { display: grid; justify-items: center; gap: 4px; }
+.owner-extra-photo button,
+.owner-video-actions button { padding: 4px 7px; color: #8a285b; background: #fff0f7; border: 0; border-radius: 6px; font: inherit; font-size: 10px; cursor: pointer; }
+.owner-video-actions { display: flex; align-items: center; gap: 10px; }
 .owner-file-note { margin: 0; color: #365f42; font-size: 11px; }
 
 .owner-order + .owner-order { margin-top: 12px; }

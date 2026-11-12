@@ -36,6 +36,34 @@ async function uploadProductMedia(file, productId) {
   return result.url
 }
 
+function getProductMediaKey(src) {
+  try {
+    const url = new URL(src, window.location.origin)
+    return url.pathname === '/api/media' ? url.searchParams.get('key') : null
+  } catch {
+    return null
+  }
+}
+
+function stageMediaRemoval(src, setPendingFiles) {
+  const key = getProductMediaKey(src)
+  if (key) {
+    setPendingFiles((current) => ({ ...current, removedKeys: [...new Set([...current.removedKeys, key])] }))
+  }
+}
+
+async function deleteProductMedia(key, productId) {
+  const response = await fetch('/api/media', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, productId }),
+  })
+  if (!response.ok) {
+    const result = await response.json()
+    throw new Error(result.error || 'Não foi possível remover um arquivo antigo.')
+  }
+}
+
 function OwnerDashboard({ onSignOut }) {
   const [section, setSection] = useState('overview')
   const [products, setProducts] = useState([])
@@ -44,7 +72,7 @@ function OwnerDashboard({ onSignOut }) {
   const [editor, setEditor] = useState(null)
   const [materialText, setMaterialText] = useState('')
   const [notice, setNotice] = useState('')
-  const [pendingFiles, setPendingFiles] = useState({ mainImage: null, gallery: [], video: null })
+  const [pendingFiles, setPendingFiles] = useState({ mainImage: null, gallery: [], video: null, removedKeys: [] })
   const [isSavingProduct, setIsSavingProduct] = useState(false)
   const [dataStatus, setDataStatus] = useState('loading')
   const [dataError, setDataError] = useState('')
@@ -92,7 +120,7 @@ function OwnerDashboard({ onSignOut }) {
     if (pendingFiles.mainImage && editor?.image?.startsWith('blob:')) URL.revokeObjectURL(editor.image)
     pendingFiles.gallery.forEach((item) => URL.revokeObjectURL(item.previewUrl))
     if (pendingFiles.video && editor?.media?.video?.startsWith('blob:')) URL.revokeObjectURL(editor.media.video)
-    setPendingFiles({ mainImage: null, gallery: [], video: null })
+    setPendingFiles({ mainImage: null, gallery: [], video: null, removedKeys: [] })
   }
 
   function cancelEditor() {
@@ -142,12 +170,23 @@ function OwnerDashboard({ onSignOut }) {
       })
       const saved = await response.json()
       if (!response.ok) throw new Error(saved.error || 'Não foi possível salvar a bolsa.')
+      let cleanupFailed = false
+      for (const key of pendingFiles.removedKeys) {
+        try {
+          await deleteProductMedia(key, productId)
+        } catch (error) {
+          cleanupFailed = true
+          console.error(error)
+        }
+      }
       setProducts((current) => editor.id
         ? current.map((item) => item.id === saved.id ? saved : item)
         : [saved, ...current])
       clearPendingFiles()
       setEditor(null)
-      setNotice('Bolsa salva no banco de dados.')
+      setNotice(cleanupFailed
+        ? 'Bolsa salva, mas não foi possível apagar um arquivo removido do armazenamento.'
+        : 'Bolsa salva no banco de dados.')
       setSection('products')
     } catch (error) {
       setNotice(error.message || 'Não foi possível salvar a bolsa. Tente novamente.')
@@ -196,6 +235,7 @@ function OwnerDashboard({ onSignOut }) {
     const file = event.target.files?.[0]
     if (file) {
       if (pendingFiles.mainImage && editor.image.startsWith('blob:')) URL.revokeObjectURL(editor.image)
+      else stageMediaRemoval(editor.image, setPendingFiles)
       setPendingFiles((current) => ({ ...current, mainImage: file }))
       updateEditor('image', URL.createObjectURL(file))
     }
@@ -220,10 +260,37 @@ function OwnerDashboard({ onSignOut }) {
     event.target.value = ''
   }
 
+  function removeGalleryImage(image) {
+    if (image.src.startsWith('blob:')) {
+      URL.revokeObjectURL(image.src)
+      setPendingFiles((current) => ({
+        ...current,
+        gallery: current.gallery.filter((item) => item.previewUrl !== image.src),
+      }))
+    } else {
+      stageMediaRemoval(image.src, setPendingFiles)
+    }
+    setEditor((current) => ({
+      ...current,
+      media: { ...current.media, images: current.media.images.filter((item) => item.src !== image.src) },
+    }))
+  }
+
+  function removeVideo() {
+    if (editor.media.video?.startsWith('blob:')) {
+      URL.revokeObjectURL(editor.media.video)
+      setPendingFiles((current) => ({ ...current, video: null }))
+    } else {
+      if (editor.media.video) stageMediaRemoval(editor.media.video, setPendingFiles)
+    }
+    setEditor((current) => ({ ...current, media: { ...current.media, video: null } }))
+  }
+
   function setVideo(event) {
     const file = event.target.files?.[0]
     if (file) {
       if (pendingFiles.video && editor.media.video?.startsWith('blob:')) URL.revokeObjectURL(editor.media.video)
+      else if (editor.media.video) stageMediaRemoval(editor.media.video, setPendingFiles)
       setPendingFiles((current) => ({ ...current, video: file }))
       setEditor((current) => ({
         ...current,
@@ -347,11 +414,17 @@ function OwnerDashboard({ onSignOut }) {
                     <fieldset className="owner-media-fieldset">
                       <legend>Fotos e vídeo</legend>
                       <p className="owner-file-note">Os arquivos selecionados serão enviados ao salvar. Limite de 4 MB por arquivo.</p>
+                      <p className="owner-file-note">Para remover uma foto ou vídeo, clique em Remover e salve a bolsa.</p>
                       <div className="owner-media-preview"><img src={editor.image || '/images/logo/logo.JPG'} alt="Prévia da foto principal" /><label>Foto principal<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectMainImage} /></label></div>
                       <label>Adicionar outras fotos<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={addGalleryImages} /></label>
-                      {editor.media.images.length > 0 && <div className="owner-extra-photos">{editor.media.images.map((image, index) => <img key={`${image.src}-${index}`} src={image.src} alt={image.label || 'Outra foto da bolsa'} />)}</div>}
+                      {editor.media.images.length > 0 && <div className="owner-extra-photos">{editor.media.images.map((image, index) => (
+                        <div className="owner-extra-photo" key={`${image.src}-${index}`}>
+                          <img src={image.src} alt={image.label || 'Outra foto da bolsa'} />
+                          <button type="button" onClick={() => removeGalleryImage(image)} aria-label={`Remover foto ${image.label || index + 1}`}>Remover</button>
+                        </div>
+                      ))}</div>}
                       <label>Adicionar ou substituir vídeo<input type="file" accept="video/mp4" onChange={setVideo} /></label>
-                      {pendingFiles.video && <p className="owner-file-note">Vídeo selecionado ✓</p>}
+                      {editor.media.video && <div className="owner-video-actions"><p className="owner-file-note">{pendingFiles.video ? 'Novo vídeo selecionado ✓' : 'Vídeo cadastrado ✓'}</p><button type="button" onClick={removeVideo}>Remover vídeo</button></div>}
                     </fieldset>
                     <button className="owner-primary-button" type="submit" disabled={isSavingProduct}>{isSavingProduct ? 'Enviando e salvando…' : 'Salvar bolsa'}</button>
                   </form>

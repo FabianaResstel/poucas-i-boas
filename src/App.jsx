@@ -121,7 +121,7 @@ function App() {
             onNavigate={setActivePage}
           />
           <p className="shipping-promo-banner">
-            Na compra de {storeSettings.freePacItems} ou mais bolsas, o frete PAC é grátis. SEDEX disponível com frete pago.
+            Na compra de {storeSettings.freePacItems} ou mais bolsas, o frete PAC é grátis. 10% de desconto no PIX.
           </p>
           <main>
             {activePage === 'about' ? (
@@ -159,6 +159,14 @@ function App() {
             aria-label="Fale com a Poucas boas bolsas pelo WhatsApp"
           >
             WhatsApp
+          </a>
+          <a
+            className="portfolio-credit"
+            href="https://fabianaresstel-portfolio.netlify.app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Coded by Fabiana Resstel
           </a>
         </footer>
       </div>

@@ -1,4 +1,5 @@
 import { getDeployStore, getStore } from '@netlify/blobs'
+import { getUser } from '@netlify/identity'
 
 const storeName = 'product-media'
 const allowedFileTypes = new Set([
@@ -24,6 +25,27 @@ function isProductMediaKey(key) {
 }
 
 export default async function mediaHandler(request, context) {
+  if (request.method === 'DELETE') {
+    try {
+      const user = await getUser()
+      if (!user) return Response.json({ error: 'Entre no painel para continuar.' }, { status: 401 })
+      if (!user.roles?.includes('admin')) {
+        return Response.json({ error: 'Você não tem permissão para remover arquivos.' }, { status: 403 })
+      }
+
+      const { key, productId } = await request.json()
+      if (!isProductMediaKey(key) || typeof productId !== 'string' || !key.startsWith(`products/${productId}/`)) {
+        return Response.json({ error: 'Arquivo inválido.' }, { status: 400 })
+      }
+
+      await getMediaStore(context).delete(key)
+      return Response.json({ deleted: true }, { headers: { 'Cache-Control': 'no-store' } })
+    } catch (error) {
+      console.error('Product media delete error:', error)
+      return Response.json({ error: 'Não foi possível remover o arquivo.' }, { status: 500 })
+    }
+  }
+
   if (request.method !== 'GET') return new Response(null, { status: 405 })
 
   const key = new URL(request.url).searchParams.get('key')

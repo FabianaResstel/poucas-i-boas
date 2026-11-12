@@ -1063,6 +1063,17 @@ a {
   background: #fff;
 }
 
+.site-footer .portfolio-credit {
+  padding: 10px 12px;
+  color: var(--purple);
+  font-size: 0.9rem;
+}
+
+.site-footer .portfolio-credit:hover,
+.site-footer .portfolio-credit:focus-visible {
+  text-decoration: underline;
+}
+
 .about-page {
   position: relative;
   padding: 4px 2px 8px;
