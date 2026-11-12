@@ -160,14 +160,16 @@ function App() {
           >
             WhatsApp
           </a>
-          <a
-            className="portfolio-credit"
-            href="https://fabianaresstel-portfolio.netlify.app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Coded by Fabiana Resstel
-          </a>
+          <p className="portfolio-credit">
+            Site desenvolvido por{' '}
+            <a
+              href="https://fabianaresstel-portfolio.netlify.app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Fabiana Resstel
+            </a>
+          </p>
         </footer>
       </div>
       {selectedProduct && (

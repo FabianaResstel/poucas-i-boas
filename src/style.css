@@ -1064,13 +1064,23 @@ a {
 }
 
 .site-footer .portfolio-credit {
-  padding: 10px 12px;
-  color: var(--purple);
-  font-size: 0.9rem;
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  padding: 0;
+  color: #755c8c;
+  font-size: 0.82rem;
+  font-weight: 400;
+  text-align: center;
 }
 
-.site-footer .portfolio-credit:hover,
-.site-footer .portfolio-credit:focus-visible {
+.site-footer .portfolio-credit a {
+  padding: 0;
+  color: var(--purple);
+  font-weight: 600;
+}
+
+.site-footer .portfolio-credit a:hover,
+.site-footer .portfolio-credit a:focus-visible {
   text-decoration: underline;
 }
 
