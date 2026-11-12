@@ -1,39 +1,6 @@
-import { useState } from 'react'
-import { products as initialProducts, formatPrice } from '../data/products.js'
-import { productMedia } from '../data/productMedia.js'
+import { useEffect, useState } from 'react'
+import { formatPrice } from '../data/products.js'
 import './owner-dashboard.css'
-
-const startingProducts = initialProducts.map((product) => ({
-  ...product,
-  weightGrams: '',
-  media: productMedia[product.id] ?? { images: [], video: null },
-}))
-
-const startingOrders = [{
-  id: 'DEMO-001',
-  customer: 'Cliente demonstração',
-  product: 'Bolsa Gaia',
-  productImage: '/images/bolsa-gaia/frente.jpg',
-  total: 415,
-  payment: 'Pix',
-  paymentStatus: 'Aguardando confirmação',
-  orderStatus: 'Aguardando pagamento',
-  shipping: 'PAC',
-}]
-
-const startingSettings = {
-  pixKey: 'francitacollistet@hotmail.com',
-  pixRecipient: '',
-  originCep: '29090-030',
-  boxLength: '30',
-  boxWidth: '28',
-  boxHeight: '5',
-  boxWeight: '35',
-  bagsPerBox: '2',
-  freePacItems: '2',
-  deliveryMin: '7',
-  deliveryMax: '15',
-}
 
 const sections = [
   { id: 'overview', label: 'Visão geral', icon: '⌂' },
@@ -58,87 +25,194 @@ function blankProduct() {
   }
 }
 
+async function uploadProductMedia(file, productId) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('productId', productId)
+
+  const response = await fetch('/api/media-upload', { method: 'POST', body: form })
+  const result = await response.json()
+  if (!response.ok) throw new Error(result.error || 'Não foi possível enviar o arquivo.')
+  return result.url
+}
+
 function OwnerDashboard({ onSignOut }) {
   const [section, setSection] = useState('overview')
-  const [products, setProducts] = useState(startingProducts)
-  const [orders, setOrders] = useState(startingOrders)
-  const [settings, setSettings] = useState(startingSettings)
+  const [products, setProducts] = useState([])
+  const [orders, setOrders] = useState([])
+  const [settings, setSettings] = useState(null)
   const [editor, setEditor] = useState(null)
   const [materialText, setMaterialText] = useState('')
   const [notice, setNotice] = useState('')
+  const [pendingFiles, setPendingFiles] = useState({ mainImage: null, gallery: [], video: null })
+  const [isSavingProduct, setIsSavingProduct] = useState(false)
+  const [dataStatus, setDataStatus] = useState('loading')
+  const [dataError, setDataError] = useState('')
+
+  async function loadDashboardData() {
+    setDataStatus('loading')
+    setDataError('')
+    try {
+      const [productsResponse, settingsResponse] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/settings'),
+      ])
+      if (!productsResponse.ok || !settingsResponse.ok) {
+        throw new Error('Não foi possível carregar os dados da loja.')
+      }
+      const [savedProducts, savedSettings] = await Promise.all([
+        productsResponse.json(),
+        settingsResponse.json(),
+      ])
+      setProducts(savedProducts)
+      setSettings(savedSettings)
+      setDataStatus('ready')
+    } catch (error) {
+      setDataError(error.message || 'Não foi possível conectar ao banco de dados.')
+      setDataStatus('error')
+    }
+  }
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
 
   const availableCount = products.filter((product) => product.status === 'available').length
   const soldCount = products.filter((product) => product.status === 'sold').length
   const pendingCount = orders.filter((order) => order.paymentStatus === 'Aguardando confirmação').length
 
   function openEditor(product) {
+    clearPendingFiles()
     setEditor(product ? { ...product, media: { ...product.media, images: [...product.media.images] } } : blankProduct())
     setMaterialText(product?.materials.join(', ') ?? '')
     setNotice('')
+  }
+
+  function clearPendingFiles() {
+    if (pendingFiles.mainImage && editor?.image?.startsWith('blob:')) URL.revokeObjectURL(editor.image)
+    pendingFiles.gallery.forEach((item) => URL.revokeObjectURL(item.previewUrl))
+    if (pendingFiles.video && editor?.media?.video?.startsWith('blob:')) URL.revokeObjectURL(editor.media.video)
+    setPendingFiles({ mainImage: null, gallery: [], video: null })
+  }
+
+  function cancelEditor() {
+    clearPendingFiles()
+    setEditor(null)
   }
 
   function updateEditor(field, value) {
     setEditor((current) => ({ ...current, [field]: value }))
   }
 
-  function saveProduct(event) {
+  async function saveProduct(event) {
     event.preventDefault()
     if (!editor.name.trim() || !editor.price || !editor.image) {
       setNotice('Preencha o nome, o preço e escolha uma foto principal.')
       return
     }
-
-    const saved = {
-      ...editor,
-      id: editor.id || `demo-${Date.now()}`,
-      name: editor.name.trim(),
-      price: Number(editor.price),
-      materials: materialText.split(',').map((item) => item.trim()).filter(Boolean),
-      imageAlt: editor.name.trim(),
+    setIsSavingProduct(true)
+    setNotice('')
+    try {
+      const productId = editor.id || crypto.randomUUID()
+      const imagePath = pendingFiles.mainImage
+        ? await uploadProductMedia(pendingFiles.mainImage, productId)
+        : editor.image
+      const savedImages = editor.media.images.filter((image) => !image.src.startsWith('blob:'))
+      for (const pendingImage of pendingFiles.gallery) {
+        const src = await uploadProductMedia(pendingImage.file, productId)
+        savedImages.push({ src, label: pendingImage.file.name })
+      }
+      const videoPath = pendingFiles.video
+        ? await uploadProductMedia(pendingFiles.video, productId)
+        : editor.media.video
+      const product = {
+        ...editor,
+        id: productId,
+        name: editor.name.trim(),
+        price: Number(editor.price),
+        materials: materialText.split(',').map((item) => item.trim()).filter(Boolean),
+        image: imagePath,
+        imageAlt: editor.name.trim(),
+        media: { images: savedImages, video: videoPath },
+      }
+      const response = await fetch('/api/products', {
+        method: editor.id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product),
+      })
+      const saved = await response.json()
+      if (!response.ok) throw new Error(saved.error || 'Não foi possível salvar a bolsa.')
+      setProducts((current) => editor.id
+        ? current.map((item) => item.id === saved.id ? saved : item)
+        : [saved, ...current])
+      clearPendingFiles()
+      setEditor(null)
+      setNotice('Bolsa salva no banco de dados.')
+      setSection('products')
+    } catch (error) {
+      setNotice(error.message || 'Não foi possível salvar a bolsa. Tente novamente.')
+    } finally {
+      setIsSavingProduct(false)
     }
-
-    setProducts((current) => editor.id
-      ? current.map((product) => product.id === editor.id ? saved : product)
-      : [saved, ...current])
-    setEditor(null)
-    setNotice('Bolsa atualizada nesta prévia. A alteração não foi salva no site.')
-    setSection('products')
   }
 
-  function markSold(product) {
-    const shouldMarkSold = window.confirm(`Marcar ${product.name} como vendida nesta prévia?`)
+  async function markSold(product) {
+    const shouldMarkSold = window.confirm(`Marcar ${product.name} como vendida?`)
     if (!shouldMarkSold) return
-    setProducts((current) => current.map((item) => item.id === product.id
-      ? { ...item, status: 'sold' }
-      : item))
-    setNotice(`${product.name} aparece como vendida nesta prévia.`)
+    const updated = { ...product, status: 'sold' }
+    try {
+      const response = await fetch('/api/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      })
+      const saved = await response.json()
+      if (!response.ok) throw new Error(saved.error || 'Não foi possível atualizar o status.')
+      setProducts((current) => current.map((item) => item.id === saved.id ? saved : item))
+      setNotice(`${product.name} marcada como vendida.`)
+    } catch (error) {
+      setNotice(error.message || 'Não foi possível atualizar o status. Tente novamente.')
+    }
   }
 
-  function confirmPix(orderId) {
-    setOrders((current) => current.map((order) => order.id === orderId
-      ? { ...order, paymentStatus: 'Pix confirmado', orderStatus: 'Em preparação' }
-      : order))
-  }
-
-  function saveSettings(event) {
+  async function saveSettings(event) {
     event.preventDefault()
-    setNotice('Configurações atualizadas nesta prévia. A alteração não foi salva no site.')
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      })
+      const saved = await response.json()
+      if (!response.ok) throw new Error(saved.error || 'Não foi possível salvar as configurações.')
+      setSettings(saved)
+      setNotice('Configurações salvas no banco de dados.')
+    } catch (error) {
+      setNotice(error.message || 'Não foi possível salvar as configurações. Tente novamente.')
+    }
   }
 
   function selectMainImage(event) {
     const file = event.target.files?.[0]
-    if (file) updateEditor('image', URL.createObjectURL(file))
+    if (file) {
+      if (pendingFiles.mainImage && editor.image.startsWith('blob:')) URL.revokeObjectURL(editor.image)
+      setPendingFiles((current) => ({ ...current, mainImage: file }))
+      updateEditor('image', URL.createObjectURL(file))
+    }
+    event.target.value = ''
   }
 
   function addGalleryImages(event) {
     const files = Array.from(event.target.files ?? [])
     if (!files.length) return
+    const pendingImages = files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }))
+    setPendingFiles((current) => ({ ...current, gallery: [...current.gallery, ...pendingImages] }))
     setEditor((current) => ({
       ...current,
       media: {
         ...current.media,
-        images: [...current.media.images, ...files.map((file) => ({
-          src: URL.createObjectURL(file),
+        images: [...current.media.images, ...pendingImages.map(({ file, previewUrl }) => ({
+          src: previewUrl,
           label: file.name,
         }))],
       },
@@ -149,11 +223,14 @@ function OwnerDashboard({ onSignOut }) {
   function setVideo(event) {
     const file = event.target.files?.[0]
     if (file) {
+      if (pendingFiles.video && editor.media.video?.startsWith('blob:')) URL.revokeObjectURL(editor.media.video)
+      setPendingFiles((current) => ({ ...current, video: file }))
       setEditor((current) => ({
         ...current,
         media: { ...current.media, video: URL.createObjectURL(file) },
       }))
     }
+    event.target.value = ''
   }
 
   return (
@@ -171,8 +248,8 @@ function OwnerDashboard({ onSignOut }) {
         </header>
 
         <div className="owner-demo-note" role="status">
-          <strong>Prévia do painel</strong>
-          <span>As alterações são temporárias e não serão salvas no site.</span>
+          <strong>Dados conectados</strong>
+          <span>Produtos e configurações são salvos no banco; fotos e vídeos são armazenados no Netlify Blobs.</span>
         </div>
 
         <div className="owner-layout">
@@ -184,7 +261,7 @@ function OwnerDashboard({ onSignOut }) {
                 key={item.id}
                 onClick={() => {
                   setSection(item.id)
-                  setEditor(null)
+                    cancelEditor()
                   setNotice('')
                 }}
               >
@@ -196,7 +273,16 @@ function OwnerDashboard({ onSignOut }) {
           <main className="owner-main">
             {notice && <p className="owner-notice" role="status">{notice}</p>}
 
-            {section === 'overview' && (
+            {dataStatus === 'loading' && <p className="owner-panel owner-access-message" role="status">Carregando os dados da loja…</p>}
+            {dataStatus === 'error' && (
+              <div className="owner-panel owner-empty" role="alert">
+                <h2>Não foi possível carregar o painel</h2>
+                <p>{dataError}</p>
+                <button className="owner-primary-button" type="button" onClick={loadDashboardData}>Tentar novamente</button>
+              </div>
+            )}
+
+            {dataStatus === 'ready' && section === 'overview' && (
               <section aria-labelledby="owner-title">
                 <div className="owner-heading-row">
                   <div>
@@ -212,7 +298,7 @@ function OwnerDashboard({ onSignOut }) {
                 <div className="owner-stat-grid">
                   <div className="owner-stat"><span>Bolsas cadastradas</span><strong>{products.length}</strong><small>Catálogo atual</small></div>
                   <div className="owner-stat"><span>Disponíveis</span><strong>{availableCount}</strong><small>Podem ser compradas</small></div>
-                  <div className="owner-stat"><span>Aguardando Pix</span><strong>{pendingCount}</strong><small>Exemplo para esta prévia</small></div>
+                  <div className="owner-stat"><span>Aguardando Pix</span><strong>{pendingCount}</strong><small>Pedidos aguardando confirmação</small></div>
                 </div>
 
                 <div className="owner-content-grid">
@@ -230,7 +316,7 @@ function OwnerDashboard({ onSignOut }) {
                     <div className="owner-panel-heading"><h2>Precisa de atenção</h2></div>
                     <div className="owner-task">
                       <span className="owner-task-dot" aria-hidden="true">•</span>
-                      <span><strong>Confirmar pagamento Pix</strong><small>Exemplo de pedido aguardando conferência no banco.</small></span>
+                      <span><strong>Nenhum pedido para revisar</strong><small>Os pedidos reais aparecerão aqui quando o checkout estiver conectado.</small></span>
                     </div>
                     <button type="button" className="owner-text-button owner-task-link" onClick={() => setSection('orders')}>Abrir pedidos</button>
                     <p className="owner-muted-note">A confirmação real só estará disponível quando o backend estiver conectado.</p>
@@ -239,7 +325,7 @@ function OwnerDashboard({ onSignOut }) {
               </section>
             )}
 
-            {section === 'products' && (
+            {dataStatus === 'ready' && section === 'products' && (
               <section aria-labelledby="products-title">
                 <div className="owner-heading-row">
                   <div><p className="owner-eyebrow">Catálogo</p><h1 id="products-title">Suas bolsas</h1><p className="owner-subtitle">Edite as informações e mídias de cada peça.</p></div>
@@ -248,7 +334,7 @@ function OwnerDashboard({ onSignOut }) {
 
                 {editor ? (
                   <form className="owner-panel owner-product-form" onSubmit={saveProduct}>
-                    <div className="owner-panel-heading"><h2>{editor.id ? 'Editar bolsa' : 'Nova bolsa'}</h2><button type="button" className="owner-text-button" onClick={() => setEditor(null)}>Cancelar</button></div>
+                    <div className="owner-panel-heading"><h2>{editor.id ? 'Editar bolsa' : 'Nova bolsa'}</h2><button type="button" className="owner-text-button" onClick={cancelEditor}>Cancelar</button></div>
                     <label>Nome da bolsa<input value={editor.name} onChange={(event) => updateEditor('name', event.target.value)} placeholder="Ex.: Bolsa Afrodite" required /></label>
                     <div className="owner-form-grid">
                       <label>Preço (R$)<input type="number" min="0" step="0.01" value={editor.price} onChange={(event) => updateEditor('price', event.target.value)} required /></label>
@@ -260,13 +346,14 @@ function OwnerDashboard({ onSignOut }) {
 
                     <fieldset className="owner-media-fieldset">
                       <legend>Fotos e vídeo</legend>
+                      <p className="owner-file-note">Os arquivos selecionados serão enviados ao salvar. Limite de 4 MB por arquivo.</p>
                       <div className="owner-media-preview"><img src={editor.image || '/images/logo/logo.JPG'} alt="Prévia da foto principal" /><label>Foto principal<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectMainImage} /></label></div>
                       <label>Adicionar outras fotos<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={addGalleryImages} /></label>
                       {editor.media.images.length > 0 && <div className="owner-extra-photos">{editor.media.images.map((image, index) => <img key={`${image.src}-${index}`} src={image.src} alt={image.label || 'Outra foto da bolsa'} />)}</div>}
                       <label>Adicionar ou substituir vídeo<input type="file" accept="video/mp4" onChange={setVideo} /></label>
-                      {editor.media.video && <p className="owner-file-note">Vídeo selecionado ✓</p>}
+                      {pendingFiles.video && <p className="owner-file-note">Vídeo selecionado ✓</p>}
                     </fieldset>
-                    <button className="owner-primary-button" type="submit">Salvar bolsa (prévia)</button>
+                    <button className="owner-primary-button" type="submit" disabled={isSavingProduct}>{isSavingProduct ? 'Enviando e salvando…' : 'Salvar bolsa'}</button>
                   </form>
                 ) : (
                   <section className="owner-panel">
@@ -289,7 +376,7 @@ function OwnerDashboard({ onSignOut }) {
               </section>
             )}
 
-            {section === 'orders' && (
+            {dataStatus === 'ready' && section === 'orders' && (
               <section aria-labelledby="orders-title">
                 <div className="owner-heading-row"><div><p className="owner-eyebrow">Vendas</p><h1 id="orders-title">Pedidos</h1><p className="owner-subtitle">Confira o pagamento e acompanhe a entrega.</p></div></div>
                 {orders.length ? orders.map((order) => (
@@ -297,15 +384,13 @@ function OwnerDashboard({ onSignOut }) {
                     <div className="owner-order-heading"><div><span className="owner-order-number">{order.id} <span className="owner-demo-chip">exemplo</span></span><h2>{order.customer}</h2><small>Forma de pagamento: {order.payment} · Envio: {order.shipping}</small></div><strong>{formatPrice(order.total)}</strong></div>
                     <div className="owner-order-product"><img src={order.productImage} alt="" /><span>{order.product}</span></div>
                     <div className="owner-order-bottom"><span><small>Pagamento</small><strong>{order.paymentStatus}</strong></span><label>Status do pedido<select value={order.orderStatus} onChange={(event) => setOrders((current) => current.map((item) => item.id === order.id ? { ...item, orderStatus: event.target.value } : item))}><option>Aguardando pagamento</option><option>Em preparação</option><option>Enviado</option><option>Entregue</option><option>Cancelado</option></select></label>
-                      {order.paymentStatus === 'Aguardando confirmação' && <button type="button" className="owner-primary-button" onClick={() => confirmPix(order.id)}>Confirmar Pix (prévia)</button>}
                     </div>
-                    <p className="owner-muted-note">Pedido fictício para demonstrar a tela; nenhuma confirmação financeira será enviada ou registrada.</p>
                   </article>
                 )) : <div className="owner-panel owner-empty"><h2>Nenhum pedido por enquanto</h2><p>Os novos pedidos aparecerão aqui quando o checkout estiver conectado.</p></div>}
               </section>
             )}
 
-            {section === 'settings' && (
+            {dataStatus === 'ready' && section === 'settings' && (
               <section aria-labelledby="settings-title">
                 <div className="owner-heading-row"><div><p className="owner-eyebrow">Preferências da loja</p><h1 id="settings-title">Configurações</h1><p className="owner-subtitle">Informações para pagamento e embalagem.</p></div></div>
                 <form className="owner-panel owner-settings-form" onSubmit={saveSettings}>
@@ -318,7 +403,7 @@ function OwnerDashboard({ onSignOut }) {
                   <div className="owner-form-grid"><label>Peso da caixa (g)<input type="number" value={settings.boxWeight} onChange={(event) => setSettings({ ...settings, boxWeight: event.target.value })} /></label><label>Bolsas por caixa<input type="number" min="1" value={settings.bagsPerBox} onChange={(event) => setSettings({ ...settings, bagsPerBox: event.target.value })} /></label></div>
                   <div className="owner-form-grid"><label>Frete PAC grátis a partir de<input type="number" min="1" value={settings.freePacItems} onChange={(event) => setSettings({ ...settings, freePacItems: event.target.value })} /></label><span className="owner-settings-hint">O SEDEX continua pago.</span></div>
                   <div className="owner-form-grid"><label>Prazo mínimo (dias úteis)<input type="number" min="1" value={settings.deliveryMin} onChange={(event) => setSettings({ ...settings, deliveryMin: event.target.value })} /></label><label>Prazo máximo (dias úteis)<input type="number" min="1" value={settings.deliveryMax} onChange={(event) => setSettings({ ...settings, deliveryMax: event.target.value })} /></label></div>
-                  <button className="owner-primary-button" type="submit">Salvar configurações (prévia)</button>
+                  <button className="owner-primary-button" type="submit">Salvar configurações</button>
                 </form>
               </section>
             )}

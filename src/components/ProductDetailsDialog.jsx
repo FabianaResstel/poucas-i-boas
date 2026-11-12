@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { formatPrice } from '../data/products.js'
 import { productMedia } from '../data/productMedia.js'
 
-function ProductDetailsDialog({ product, onClose, onAddToCart, onOpenCart }) {
+function ProductDetailsDialog({ product, settings, onClose, onAddToCart, onOpenCart }) {
   const dialogRef = useRef(null)
   const status = product.status ?? 'available'
   const isAvailable = status === 'available'
-  const media = productMedia[product.id] ?? { images: [] }
+  const media = product.media ?? productMedia[product.id] ?? { images: [], video: null }
   const gallery = [
     { src: product.image, label: 'Vista principal' },
     ...media.images,
@@ -92,7 +92,7 @@ function ProductDetailsDialog({ product, onClose, onAddToCart, onOpenCart }) {
 
           <div className="purchase-info">
             <p><strong>Formas de pagamento:</strong> Cartão de crédito, PayPal ou Pix.</p>
-            <p><strong>Prazo de entrega:</strong> 7 a 15 dias úteis.</p>
+            <p><strong>Prazo de entrega:</strong> {settings.deliveryMin} a {settings.deliveryMax} dias úteis.</p>
           </div>
 
           {isAvailable ? (

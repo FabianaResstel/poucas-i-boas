@@ -17,14 +17,15 @@ function formatCep(value) {
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits
 }
 
-function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
+function CheckoutPage({ items, settings, onBackToCart, onContinueShopping }) {
   const [paymentMethod, setPaymentMethod] = useState(null)
   const [cep, setCep] = useState('')
   const [cepError, setCepError] = useState('')
   const [shippingStepComplete, setShippingStepComplete] = useState(false)
   const [selectedShipping, setSelectedShipping] = useState(null)
   const itemCount = items.reduce((count, item) => count + item.quantity, 0)
-  const qualifiesForFreePac = itemCount >= 2
+  const freePacItems = Number(settings.freePacItems)
+  const qualifiesForFreePac = itemCount >= freePacItems
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
   function handleCepChange(event) {
@@ -130,7 +131,7 @@ function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
                 <p className="checkout-shipping-promo">
                   {qualifiesForFreePac
                     ? 'O PAC é grátis para este pedido. O SEDEX permanece pago.'
-                    : 'Na compra de 2 ou mais bolsas, o frete PAC é grátis. O SEDEX permanece pago.'}
+                    : `Na compra de ${freePacItems} ou mais bolsas, o frete PAC é grátis. O SEDEX permanece pago.`}
                 </p>
               </div>
             )}
@@ -243,7 +244,9 @@ function CheckoutPage({ items, onBackToCart, onContinueShopping }) {
           </ul>
           <p className="checkout-delivery">
             <strong>Prazo de entrega:</strong>{' '}
-            {selectedShipping ? 'será informado com a cotação.' : 'aguardando cotação do frete.'}
+            {selectedShipping
+              ? `${settings.deliveryMin} a ${settings.deliveryMax} dias úteis, sujeito à cotação dos Correios.`
+              : 'aguardando cotação do frete.'}
           </p>
           <p className="checkout-total"><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></p>
           <p className="checkout-shipping-note">

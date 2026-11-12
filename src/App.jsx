@@ -6,15 +6,59 @@ import CartDialog from './components/CartDialog.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import CheckoutPage from './components/CheckoutPage.jsx'
 import OwnerAccess from './components/OwnerAccess.jsx'
+import { products as staticProducts } from './data/products.js'
+import { productMedia } from './data/productMedia.js'
+
+const defaultStoreSettings = {
+  pixKey: 'francitacollistet@hotmail.com',
+  pixRecipient: '',
+  originCep: '29090-030',
+  boxLength: '30',
+  boxWidth: '28',
+  boxHeight: '5',
+  boxWeight: '35',
+  bagsPerBox: '2',
+  freePacItems: '2',
+  deliveryMin: '7',
+  deliveryMax: '15',
+}
 
 function App() {
   const isOwnerRoute = window.location.pathname.replace(/\/$/, '') === '/admin'
   const hasIdentityCallback = /(?:invite_token|access_token|confirmation_token|recovery_token|email_change_token)=/.test(window.location.hash)
   const [activePage, setActivePage] = useState('shop')
+  const [products, setProducts] = useState(() => staticProducts.map((product) => ({
+    ...product,
+    media: productMedia[product.id] ?? { images: [], video: null },
+  })))
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState([])
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+
+  useEffect(() => {
+    if (isOwnerRoute || hasIdentityCallback) return undefined
+
+    let isMounted = true
+    fetch('/api/products')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((savedProducts) => {
+        if (isMounted && Array.isArray(savedProducts)) setProducts(savedProducts)
+      })
+      .catch(() => {})
+
+    fetch('/api/settings')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((savedSettings) => {
+        if (isMounted && savedSettings) setStoreSettings(savedSettings)
+      })
+      .catch(() => {})
+
+    return () => {
+      isMounted = false
+    }
+  }, [isOwnerRoute, hasIdentityCallback])
 
   useEffect(() => {
     if (isOwnerRoute || hasIdentityCallback) {
@@ -77,7 +121,7 @@ function App() {
             onNavigate={setActivePage}
           />
           <p className="shipping-promo-banner">
-            Na compra de 2 ou mais bolsas, o frete PAC é grátis. SEDEX disponível com frete pago.
+            Na compra de {storeSettings.freePacItems} ou mais bolsas, o frete PAC é grátis. SEDEX disponível com frete pago.
           </p>
           <main>
             {activePage === 'about' ? (
@@ -85,6 +129,7 @@ function App() {
             ) : activePage === 'checkout' ? (
               <CheckoutPage
                 items={cartItems}
+                settings={storeSettings}
                 onBackToCart={() => {
                   setActivePage('shop')
                   setCartOpen(true)
@@ -92,7 +137,7 @@ function App() {
                 onContinueShopping={() => setActivePage('shop')}
               />
             ) : (
-              <ProductGrid onOpenProduct={setSelectedProduct} />
+              <ProductGrid products={products} onOpenProduct={setSelectedProduct} />
             )}
           </main>
         </div>
@@ -120,6 +165,7 @@ function App() {
       {selectedProduct && (
         <ProductDetailsDialog
           product={selectedProduct}
+          settings={storeSettings}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={addToCart}
           onOpenCart={() => {
@@ -131,6 +177,7 @@ function App() {
       {cartOpen && (
         <CartDialog
           items={cartItems}
+          freePacItems={Number(storeSettings.freePacItems)}
           onClose={() => setCartOpen(false)}
           onRemove={removeFromCart}
           onContinueShopping={() => setCartOpen(false)}

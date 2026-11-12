@@ -1,7 +1,6 @@
-import { products } from '../data/products.js'
 import ProductCard from './ProductCard.jsx'
 
-function ProductGrid({ onOpenProduct }) {
+function ProductGrid({ products, onOpenProduct }) {
   return (
     <section className="shop-page" id="loja" aria-labelledby="shop-title">
       <div className="shop-intro">

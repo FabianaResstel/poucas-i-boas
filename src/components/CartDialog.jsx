@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { formatPrice } from '../data/products.js'
 
-function CartDialog({ items, onClose, onRemove, onContinueShopping, onCheckout }) {
+function CartDialog({ items, freePacItems = 2, onClose, onRemove, onContinueShopping, onCheckout }) {
   const dialogRef = useRef(null)
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   const itemCount = items.reduce((count, item) => count + item.quantity, 0)
@@ -51,9 +51,9 @@ function CartDialog({ items, onClose, onRemove, onContinueShopping, onCheckout }
           </ul>
           <p className="cart-subtotal"><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></p>
           <p className="cart-shipping-promo" role="status">
-            {itemCount >= 2
+            {itemCount >= freePacItems
               ? 'Você ganhou frete PAC grátis. SEDEX continua com frete pago.'
-              : 'Adicione mais uma bolsa para ganhar frete PAC grátis. SEDEX continua disponível com frete pago.'}
+              : `Compre mais ${freePacItems - itemCount} bolsa(s) para ganhar frete PAC grátis. SEDEX continua disponível com frete pago.`}
           </p>
           <button className="primary-action cart-checkout-action" type="button" onClick={onCheckout}>
             Continuar para pagamento
