@@ -314,6 +314,10 @@
 .owner-empty p { margin: 8px 0 0; color: #756a80; font-size: 13px; }
 .owner-settings-form h2:not(:first-child) { padding-top: 8px; border-top: 1px solid #eee6f4; }
 .owner-settings-hint { padding: 11px 0; color: #756a80; font-size: 11px; }
+.owner-shipping-connection { display: grid; justify-items: start; gap: 10px; margin-top: 14px; }
+.owner-shipping-connection h2,
+.owner-shipping-connection p { margin: 0; }
+.owner-shipping-connection p { color: #756a80; font-size: 12px; line-height: 1.5; }
 
 @media (max-width: 760px) {
   .owner-page { padding: 12px 10px 24px; background-attachment: scroll; }

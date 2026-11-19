@@ -9,6 +9,18 @@ const sections = [
   { id: 'settings', label: 'Configurações', icon: '⚙' },
 ]
 
+const shippingApiUrl = 'https://poucas-i-boas-api.poucaseboaswebsite.workers.dev'
+
+function getIdentityAccessToken() {
+  const tokenCookie = document.cookie.split('; ').find((cookie) => cookie.startsWith('nf_jwt='))
+  if (!tokenCookie) return null
+  try {
+    return decodeURIComponent(tokenCookie.slice('nf_jwt='.length))
+  } catch {
+    return tokenCookie.slice('nf_jwt='.length)
+  }
+}
+
 function blankProduct() {
   return {
     id: '',
@@ -74,6 +86,7 @@ function OwnerDashboard({ onSignOut }) {
   const [notice, setNotice] = useState('')
   const [pendingFiles, setPendingFiles] = useState({ mainImage: null, gallery: [], video: null, removedKeys: [] })
   const [isSavingProduct, setIsSavingProduct] = useState(false)
+  const [isConnectingShipping, setIsConnectingShipping] = useState(false)
   const [dataStatus, setDataStatus] = useState('loading')
   const [dataError, setDataError] = useState('')
 
@@ -228,6 +241,31 @@ function OwnerDashboard({ onSignOut }) {
       setNotice('Configurações salvas no banco de dados.')
     } catch (error) {
       setNotice(error.message || 'Não foi possível salvar as configurações. Tente novamente.')
+    }
+  }
+
+  async function connectShippingAccount() {
+    setIsConnectingShipping(true)
+    setNotice('')
+    try {
+      const accessToken = getIdentityAccessToken()
+      if (!accessToken) throw new Error('Sua sessão expirou. Entre novamente no painel.')
+
+      const response = await fetch(`${shippingApiUrl}/api/melhor-envio/connect`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Não foi possível iniciar a conexão.')
+
+      const authorizationUrl = new URL(result.authorizationUrl)
+      if (authorizationUrl.origin !== 'https://sandbox.melhorenvio.com.br') {
+        throw new Error('O endereço de autorização retornado não é válido.')
+      }
+      window.location.assign(authorizationUrl.toString())
+    } catch (error) {
+      setNotice(error.message || 'Não foi possível conectar ao Melhor Envio. Tente novamente.')
+      setIsConnectingShipping(false)
     }
   }
 
@@ -478,6 +516,13 @@ function OwnerDashboard({ onSignOut }) {
                   <div className="owner-form-grid"><label>Prazo mínimo (dias úteis)<input type="number" min="1" value={settings.deliveryMin} onChange={(event) => setSettings({ ...settings, deliveryMin: event.target.value })} /></label><label>Prazo máximo (dias úteis)<input type="number" min="1" value={settings.deliveryMax} onChange={(event) => setSettings({ ...settings, deliveryMax: event.target.value })} /></label></div>
                   <button className="owner-primary-button" type="submit">Salvar configurações</button>
                 </form>
+                <section className="owner-panel owner-shipping-connection" aria-labelledby="shipping-connection-title">
+                  <h2 id="shipping-connection-title">Melhor Envio · ambiente de testes</h2>
+                  <p>Conecte a conta Sandbox para preparar as cotações. Essa etapa não compra etiquetas nem conecta a conta real.</p>
+                  <button className="owner-primary-button" type="button" onClick={connectShippingAccount} disabled={isConnectingShipping}>
+                    {isConnectingShipping ? 'Conectando…' : 'Conectar conta Sandbox'}
+                  </button>
+                </section>
               </section>
             )}
           </main>

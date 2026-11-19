@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "poucas-i-boas-api",
+  "main": "cloudflare/worker.mjs",
+  "compatibility_date": "2026-11-16",
+  "workers_dev": true,
+  "keep_vars": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "poucas-i-boas-integrations",
+      "database_id": "2982034f-d52c-44ea-96b6-c9b595fdb5a7",
+      "migrations_dir": "cloudflare/migrations"
+    }
+  ]
+}
